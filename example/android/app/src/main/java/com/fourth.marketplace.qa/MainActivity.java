@@ -1,4 +1,4 @@
-package com.example;
+package com.fourth.marketplace.qa;
 import android.content.res.Configuration;
 import android.content.Intent;
 

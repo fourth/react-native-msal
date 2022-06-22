@@ -16,10 +16,10 @@ def safeExtGet(prop, fallback) {
 }
 
 android {
-  compileSdkVersion safeExtGet('Msal_compileSdkVersion', 29)
+  compileSdkVersion safeExtGet('Msal_compileSdkVersion', 31)
   defaultConfig {
-    minSdkVersion safeExtGet('Msal_minSdkVersion', 16)
-    targetSdkVersion safeExtGet('Msal_targetSdkVersion', 29)
+    minSdkVersion safeExtGet('Msal_minSdkVersion', 21)
+    targetSdkVersion safeExtGet('Msal_targetSdkVersion', 31)
     versionCode 1
     versionName "1.0"
   }
@@ -51,5 +51,5 @@ repositories {
 dependencies {
   // noinspection GradleDynamicVersion
   implementation 'com.facebook.react:react-native:+' // From node_modules
-  implementation 'com.microsoft.identity.client:msal:2.2.+'
+  implementation "com.microsoft.identity.client:msal:2.+"
 }

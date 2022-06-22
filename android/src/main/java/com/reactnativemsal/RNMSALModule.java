@@ -53,7 +53,7 @@ public class RNMSALModule extends ReactContextBaseJavaModule {
     private static final String AUTHORITY_TYPE_AAD = "AAD";
 
     private static final Pattern aadAuthorityPattern = Pattern.compile("https://login\\.microsoftonline\\.com/([^/]+)");
-    private static final Pattern b2cAuthorityPattern = Pattern.compile("https://([^/]+)/tfp/([^/]+)/.+");
+    private static final Pattern b2cAuthorityPattern = Pattern.compile("https://([^/]+)/([^/]+)/.+");
 
     private IMultipleAccountPublicClientApplication publicClientApplication;
 
@@ -90,12 +90,15 @@ public class RNMSALModule extends ReactContextBaseJavaModule {
 
             ReadableMap auth = params.getMap("auth");
 
-            // Authority
+//            // Authority
             String authority = getStringOrDefault(auth, "authority", "https://login.microsoftonline.com/common");
-            msalConfigJsonObj.put("authority", authority);
+//            msalConfigJsonObj.put("authority", authority);
 
             // Client id
             msalConfigJsonObj.put("client_id", getStringOrThrow(auth, "clientId"));
+
+            // Auth user agent
+            msalConfigJsonObj.put("authorization_user_agent", auth.hasKey("authorizationUserAgent") ? auth.getString("authorizationUserAgent") : "DEFAULT");
 
             // Redirect URI
             msalConfigJsonObj.put("redirect_uri", auth.hasKey("redirectUri") ? auth.getString("redirectUri") : makeRedirectUri(context).toString());

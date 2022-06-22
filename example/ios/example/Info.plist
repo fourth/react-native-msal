@@ -25,7 +25,7 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
-          <string>com.example</string>
+          <string>com.fourth.marketplace.qa</string>
         </array>
       </dict>
       <dict>
