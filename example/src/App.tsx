@@ -3,8 +3,9 @@
  */
 
 import React from 'react';
-import {Platform, SafeAreaView, ScrollView, StyleSheet, Switch, Text, View, TouchableOpacity} from 'react-native';
+import {Platform, SafeAreaView, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View} from 'react-native';
 import type {MSALResult, MSALWebviewParams} from 'react-native-msal';
+import {MSALPromptType} from "react-native-msal";
 
 import {B2CClient} from './b2cClient';
 import {b2cConfig, b2cScopes as scopes} from './msalConfig';
@@ -40,7 +41,7 @@ export default function App() {
     const handleSignInPress = async () => {
         try {
             console.warn("handleSignInPress");
-            const res = await b2cClient.signIn({scopes, webviewParameters});
+            const res = await b2cClient.signIn({scopes, webviewParameters,promptType:MSALPromptType.LOGIN});
             console.warn(res);
             setAuthResult(res);
         } catch (error) {

@@ -11,41 +11,42 @@ RCT_EXPORT_MODULE()
 
 MSALPublicClientApplication *application;
 
-- (dispatch_queue_t)methodQueue
-{
+- (dispatch_queue_t)methodQueue {
     return dispatch_get_main_queue();
 }
 
 RCT_REMAP_METHOD(createPublicClientApplication,
-                 config:(NSDictionary*)config
-                 resolver:(RCTPromiseResolveBlock)resolve
-                 rejecter:(RCTPromiseRejectBlock)reject)
+            config:
+            (NSDictionary *) config
+            resolver:
+            (RCTPromiseResolveBlock) resolve
+            rejecter:
+            (RCTPromiseRejectBlock) reject)
 {
     @try {
         NSError *msalError = nil;
 
         // Required
-        NSDictionary* auth = [RCTConvert NSDictionary:config[@"auth"]];
-        NSString* clientId = [RCTConvert NSString:auth[@"clientId"]];
+        NSDictionary *auth = [RCTConvert NSDictionary:config[@"auth"]];
+        NSString *clientId = [RCTConvert NSString:auth[@"clientId"]];
 
         // Optional
-        NSString* authority = [RCTConvert NSString:auth[@"authority"]];
-        NSArray<NSString*> * knownAuthorities = [RCTConvert NSStringArray:auth[@"knownAuthorities"]];
-        NSString* redirectUri = [RCTConvert NSString:auth[@"redirectUri"]];
-
-        MSALPublicClientApplicationConfig *applicationConfig = [[MSALPublicClientApplicationConfig alloc] initWithClientId:clientId];
+        NSString *authority = [RCTConvert NSString:auth[@"authority"]];
+        NSArray<NSString *> *knownAuthorities = [RCTConvert NSStringArray:auth[@"knownAuthorities"]];
+        NSString *redirectUri = [RCTConvert NSString:auth[@"redirectUri"]];
+        MSALB2CAuthority *msalAuthority = nil;
         if (authority) {
-            MSALAuthority *msalAuthority = [MSALAuthority authorityWithURL:[NSURL URLWithString:authority] error:&msalError];
+            msalAuthority = [[MSALB2CAuthority alloc] initWithURL:[NSURL URLWithString:authority] error:&msalError];
             if (msalError) {
                 @throw(msalError);
             }
-            applicationConfig.authority = msalAuthority;
         }
+        MSALPublicClientApplicationConfig *applicationConfig = [[MSALPublicClientApplicationConfig alloc] initWithClientId:clientId redirectUri:nil authority:msalAuthority];
 
         if (knownAuthorities) {
-            NSMutableArray<MSALAuthority*> * msalKnownAuthorities = [NSMutableArray arrayWithCapacity:1];
+            NSMutableArray<MSALB2CAuthority *> *msalKnownAuthorities = [NSMutableArray arrayWithCapacity:1];
             for (NSString *authorityString in knownAuthorities) {
-                MSALAuthority *a = [MSALAuthority authorityWithURL:[NSURL URLWithString:authorityString] error:&msalError];
+                MSALB2CAuthority *a = [[MSALB2CAuthority alloc] initWithURL:[NSURL URLWithString:authorityString] error:&msalError];
                 if (msalError) {
                     @throw(msalError);
                 }
@@ -54,9 +55,9 @@ RCT_REMAP_METHOD(createPublicClientApplication,
             applicationConfig.knownAuthorities = msalKnownAuthorities;
         }
 
-        if (redirectUri) {
-            applicationConfig.redirectUri = redirectUri;
-        }
+//        if (redirectUri) {
+//            applicationConfig.redirectUri = redirectUri;
+//        }
 
         application = [[MSALPublicClientApplication alloc] initWithConfiguration:applicationConfig error:&msalError];
 
@@ -66,14 +67,17 @@ RCT_REMAP_METHOD(createPublicClientApplication,
 
         resolve(nil);
     } @catch (NSError *error) {
-        reject([[NSString alloc] initWithFormat:@"%d", (int)error.code], error.description, error);
+        reject([[NSString alloc] initWithFormat:@"%d", (int) error.code], error.description, error);
     }
 }
 
 RCT_REMAP_METHOD(acquireToken,
-                 interactiveParams:(NSDictionary*)params
-                 resolver:(RCTPromiseResolveBlock)resolve
-                 rejecter:(RCTPromiseRejectBlock)reject)
+            interactiveParams:
+            (NSDictionary *) params
+            resolver:
+            (RCTPromiseResolveBlock) resolve
+            rejecter:
+            (RCTPromiseRejectBlock) reject)
 {
     @try {
         // Required parameters
@@ -83,9 +87,9 @@ RCT_REMAP_METHOD(acquireToken,
         NSString *authority = [RCTConvert NSString:params[@"authority"]];
         NSUInteger promptType = [RCTConvert NSUInteger:params[@"promptType"]];
         NSString *loginHint = [RCTConvert NSString:params[@"loginHint"]];
-        NSDictionary<NSString *,NSString *> *extraQueryParameters = [RCTConvert NSDictionary:params[@"extraQueryParameters"]];
+        NSDictionary<NSString *, NSString *> *extraQueryParameters = [RCTConvert NSDictionary:params[@"extraQueryParameters"]];
         NSArray<NSString *> *extraScopesToConsent = [RCTConvert NSStringArray:params[@"extraScopesToConsent"]];
-        NSDictionary * webviewParameters = [RCTConvert NSDictionary:params[@"webviewParameters"]];
+        NSDictionary *webviewParameters = [RCTConvert NSDictionary:params[@"webviewParameters"]];
         NSUInteger webviewType = [RCTConvert NSUInteger:webviewParameters[@"ios_webviewType"]];
         NSInteger presentationStyle = [RCTConvert NSInteger:webviewParameters[@"ios_presentationStyle"]];
         BOOL prefersEphemeralWebBrowserSession = [RCTConvert BOOL:webviewParameters[@"ios_prefersEphemeralWebBrowserSession"]];
@@ -106,12 +110,14 @@ RCT_REMAP_METHOD(acquireToken,
         interactiveParams.extraScopesToConsent = extraScopesToConsent;
         if (authority) {
             interactiveParams.authority = [MSALAuthority authorityWithURL:[NSURL URLWithString:authority] error:nil];
+        } else {
+            interactiveParams.authority = application.configuration.authority;
         }
 
         // Send request
-        [application acquireTokenWithParameters:interactiveParams completionBlock:^(MSALResult * _Nullable result, NSError * _Nullable error) {
+        [application acquireTokenWithParameters:interactiveParams completionBlock:^(MSALResult *_Nullable result, NSError *_Nullable error) {
             if (error) {
-                reject([[NSString alloc] initWithFormat:@"%d", (int)error.code], error.description, error);
+                reject([[NSString alloc] initWithFormat:@"%d", (int) error.code], error.description, error);
             } else if (result) {
                 resolve([self MSALResultToDictionary:result withAuthority:authority]);
             } else {
@@ -119,21 +125,24 @@ RCT_REMAP_METHOD(acquireToken,
             }
         }];
     } @catch (NSError *error) {
-        reject([[NSString alloc] initWithFormat:@"%d", (int)error.code], error.description, error);
+        reject([[NSString alloc] initWithFormat:@"%d", (int) error.code], error.description, error);
     }
 }
 
 RCT_REMAP_METHOD(acquireTokenSilent,
-                 silentParams:(NSDictionary*)params
-                 resolver:(RCTPromiseResolveBlock)resolve
-                 rejecter:(RCTPromiseRejectBlock)reject)
+            silentParams:
+            (NSDictionary *) params
+            resolver:
+            (RCTPromiseResolveBlock) resolve
+            rejecter:
+            (RCTPromiseRejectBlock) reject)
 {
     @try {
         NSError *msalError = nil;
 
         // Required parameters
         NSArray<NSString *> *scopes = [RCTConvert NSStringArray:params[@"scopes"]];
-        NSDictionary * accountIn = [RCTConvert NSDictionary:params[@"account"]];
+        NSDictionary *accountIn = [RCTConvert NSDictionary:params[@"account"]];
         NSString *accountIdentifier = [RCTConvert NSString:accountIn[@"identifier"]];
 
         // Optional parameters
@@ -154,9 +163,9 @@ RCT_REMAP_METHOD(acquireTokenSilent,
         }
 
         // Send request
-        [application acquireTokenSilentWithParameters:silentParams completionBlock:^(MSALResult * _Nullable result, NSError * _Nullable error) {
+        [application acquireTokenSilentWithParameters:silentParams completionBlock:^(MSALResult *_Nullable result, NSError *_Nullable error) {
             if (error) {
-                reject([[NSString alloc] initWithFormat:@"%d", (int)error.code], error.description, error);
+                reject([[NSString alloc] initWithFormat:@"%d", (int) error.code], error.description, error);
             } else if (result) {
                 resolve([self MSALResultToDictionary:result withAuthority:authority]);
             } else {
@@ -164,13 +173,15 @@ RCT_REMAP_METHOD(acquireTokenSilent,
             }
         }];
     } @catch (NSError *error) {
-        reject([[NSString alloc] initWithFormat:@"%d", (int)error.code], error.description, error);
+        reject([[NSString alloc] initWithFormat:@"%d", (int) error.code], error.description, error);
     }
 }
 
 RCT_REMAP_METHOD(getAccounts,
-                 resolver:(RCTPromiseResolveBlock)resolve
-                 rejecter:(RCTPromiseRejectBlock)reject)
+            resolver:
+            (RCTPromiseResolveBlock) resolve
+            rejecter:
+            (RCTPromiseRejectBlock) reject)
 {
     @try {
         NSError *msalError = nil;
@@ -187,15 +198,18 @@ RCT_REMAP_METHOD(getAccounts,
             }
         }
         resolve(accounts);
-    } @catch (NSError* error) {
-        reject([[NSString alloc] initWithFormat:@"%d", (int)error.code], error.description, error);
+    } @catch (NSError *error) {
+        reject([[NSString alloc] initWithFormat:@"%d", (int) error.code], error.description, error);
     }
 }
 
 RCT_REMAP_METHOD(getAccount,
-                 accoundIdentifier:(NSString*)accountIdentifier
-                 resolver:(RCTPromiseResolveBlock)resolve
-                 rejecter:(RCTPromiseRejectBlock)reject)
+            accoundIdentifier:
+            (NSString *) accountIdentifier
+            resolver:
+            (RCTPromiseResolveBlock) resolve
+            rejecter:
+            (RCTPromiseRejectBlock) reject)
 {
     @try {
         NSError *msalError = nil;
@@ -210,15 +224,18 @@ RCT_REMAP_METHOD(getAccount,
         } else {
             resolve(nil);
         }
-    } @catch(NSError *error) {
-        reject([[NSString alloc] initWithFormat:@"%d", (int)error.code], error.description, error);
+    } @catch (NSError *error) {
+        reject([[NSString alloc] initWithFormat:@"%d", (int) error.code], error.description, error);
     }
 }
 
 RCT_REMAP_METHOD(removeAccount,
-                 account:(NSDictionary*)account
-                 resolver:(RCTPromiseResolveBlock)resolve
-                 rejecter:(RCTPromiseRejectBlock)reject)
+            account:
+            (NSDictionary *) account
+            resolver:
+            (RCTPromiseResolveBlock) resolve
+            rejecter:
+            (RCTPromiseRejectBlock) reject)
 {
     @try {
         NSError *msalError = nil;
@@ -240,26 +257,29 @@ RCT_REMAP_METHOD(removeAccount,
 
         resolve(res ? @YES : @NO);
 
-    } @catch(NSError *error) {
-        reject([[NSString alloc] initWithFormat:@"%d", (int)error.code], error.description, error);
+    } @catch (NSError *error) {
+        reject([[NSString alloc] initWithFormat:@"%d", (int) error.code], error.description, error);
     }
 }
 
 RCT_REMAP_METHOD(signout,
-                 signoutParams:(NSDictionary*)params
-                 resolver:(RCTPromiseResolveBlock)resolve
-                 rejecter:(RCTPromiseRejectBlock)reject)
+            signoutParams:
+            (NSDictionary *) params
+            resolver:
+            (RCTPromiseResolveBlock) resolve
+            rejecter:
+            (RCTPromiseRejectBlock) reject)
 {
     @try {
         NSError *msalError = nil;
 
         // Required parameters
-        NSDictionary * accountIn = [RCTConvert NSDictionary:params[@"account"]];
+        NSDictionary *accountIn = [RCTConvert NSDictionary:params[@"account"]];
         NSString *accountIdentifier = [RCTConvert NSString:accountIn[@"identifier"]];
 
         // Optional parameters
         BOOL signoutFromBrowser = [RCTConvert BOOL:params[@"signoutFromBrowser"]];
-        NSDictionary * webviewParameters = [RCTConvert NSDictionary:params[@"webviewParameters"]];
+        NSDictionary *webviewParameters = [RCTConvert NSDictionary:params[@"webviewParameters"]];
         BOOL prefersEphemeralWebBrowserSession = [RCTConvert BOOL:webviewParameters[@"ios_prefersEphemeralWebBrowserSession"]];
 
         MSALAccount *account = [application accountForIdentifier:accountIdentifier error:&msalError];
@@ -277,21 +297,20 @@ RCT_REMAP_METHOD(signout,
         MSALSignoutParameters *signoutParameters = [[MSALSignoutParameters alloc] initWithWebviewParameters:webParameters];
         signoutParameters.signoutFromBrowser = signoutFromBrowser;
 
-        [application signoutWithAccount:account signoutParameters:signoutParameters completionBlock:^(BOOL success, NSError * _Nullable error) {
+        [application signoutWithAccount:account signoutParameters:signoutParameters completionBlock:^(BOOL success, NSError *_Nullable error) {
             if (error) {
-                reject([[NSString alloc] initWithFormat:@"%d", (int)error.code], error.description, error);
+                reject([[NSString alloc] initWithFormat:@"%d", (int) error.code], error.description, error);
             } else {
                 resolve(success ? @YES : @NO);
             }
         }];
 
-    } @catch(NSError *error) {
-        reject([[NSString alloc] initWithFormat:@"%d", (int)error.code], error.description, error);
+    } @catch (NSError *error) {
+        reject([[NSString alloc] initWithFormat:@"%d", (int) error.code], error.description, error);
     }
 }
 
-- (NSDictionary*)MSALResultToDictionary:(nonnull MSALResult*)result withAuthority:(NSString*)authority
-{
+- (NSDictionary *)MSALResultToDictionary:(nonnull MSALResult *)result withAuthority:(NSString *)authority {
     NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithCapacity:1];
 
     [dict setObject:result.accessToken forKey:@"accessToken"];
@@ -304,8 +323,7 @@ RCT_REMAP_METHOD(signout,
     return [dict mutableCopy];
 }
 
-- (NSDictionary*)MSALAccountToDictionary:(nonnull MSALAccount*)account
-{
+- (NSDictionary *)MSALAccountToDictionary:(nonnull MSALAccount *)account {
     NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithCapacity:1];
     [dict setObject:account.identifier forKey:@"identifier"];
     [dict setObject:(account.username ?: [NSNull null]) forKey:@"username"];
