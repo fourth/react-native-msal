@@ -86,7 +86,7 @@ RCT_REMAP_METHOD(acquireToken,
         // Optional parameters
         NSString *authority = [RCTConvert NSString:params[@"authority"]];
         NSUInteger promptType = [RCTConvert NSUInteger:params[@"promptType"]];
-        NSString *loginHint = [RCTConvert NSString:params[@"loginHint"]];
+        NSString *loginHint = [RCTConvert NSString:params[@"loginHint"]];WKWebView *
         NSDictionary<NSString *, NSString *> *extraQueryParameters = [RCTConvert NSDictionary:params[@"extraQueryParameters"]];
         NSArray<NSString *> *extraScopesToConsent = [RCTConvert NSStringArray:params[@"extraScopesToConsent"]];
         NSDictionary *webviewParameters = [RCTConvert NSDictionary:params[@"webviewParameters"]];
@@ -96,8 +96,13 @@ RCT_REMAP_METHOD(acquireToken,
 
         // Configure interactive token parameters
         UIViewController *viewController = [UIViewController currentViewController];
+        // TODO: check if webview is closed after successful login
+        WKWebView * loginWebView = [[WKWebView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+        [viewController.view addSubview:loginWebView];
+
         MSALWebviewParameters *webParameters = [[MSALWebviewParameters alloc] initWithAuthPresentationViewController:viewController];
         webParameters.webviewType = webviewType;
+        webParameters.customWebview = loginWebView;
         webParameters.presentationStyle = presentationStyle;
         if (@available(iOS 13.0, *)) {
             webParameters.prefersEphemeralWebBrowserSession = prefersEphemeralWebBrowserSession;
