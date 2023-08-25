@@ -86,7 +86,7 @@ RCT_REMAP_METHOD(acquireToken,
         // Optional parameters
         NSString *authority = [RCTConvert NSString:params[@"authority"]];
         NSUInteger promptType = [RCTConvert NSUInteger:params[@"promptType"]];
-        NSString *loginHint = [RCTConvert NSString:params[@"loginHint"]];WKWebView *
+        NSString *loginHint = [RCTConvert NSString:params[@"loginHint"]];
         NSDictionary<NSString *, NSString *> *extraQueryParameters = [RCTConvert NSDictionary:params[@"extraQueryParameters"]];
         NSArray<NSString *> *extraScopesToConsent = [RCTConvert NSStringArray:params[@"extraScopesToConsent"]];
         NSDictionary *webviewParameters = [RCTConvert NSDictionary:params[@"webviewParameters"]];
