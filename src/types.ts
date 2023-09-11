@@ -237,6 +237,8 @@ export interface MSALResult {
    * Identifier for the directory where account is locally represented
    */
   tenantId?: string;
+
+  recognizedUrl?: string
 }
 
 export interface MSALAccount {

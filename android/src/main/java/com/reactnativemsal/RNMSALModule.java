@@ -1,5 +1,7 @@
 package com.reactnativemsal;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
@@ -11,6 +13,7 @@ import android.util.Pair;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -48,17 +51,25 @@ import java.util.regex.Pattern;
 import static com.reactnativemsal.ReadableMapUtils.getStringOrDefault;
 import static com.reactnativemsal.ReadableMapUtils.getStringOrThrow;
 
-public class RNMSALModule extends ReactContextBaseJavaModule {
+public class RNMSALModule extends ReactContextBaseJavaModule implements ActivityEventListener {
+    public static final String URL_KEY = "URL";
+    public static final String POLICY_CHANGE_DATA = "fourth://auth/policyChange";
     private static final String AUTHORITY_TYPE_B2C = "B2C";
     private static final String AUTHORITY_TYPE_AAD = "AAD";
+    private static final String RECOGNIZED_URL = "recognizedUrl";
+    public static  ArrayList<String> recognizedPolicies = new ArrayList<>();
 
     private static final Pattern aadAuthorityPattern = Pattern.compile("https://login\\.microsoftonline\\.com/([^/]+)");
     private static final Pattern b2cAuthorityPattern = Pattern.compile("https://([^/]+)/([^/]+)/.+");
 
     private IMultipleAccountPublicClientApplication publicClientApplication;
 
+    private Promise aquireTokenPromise;
+
     public RNMSALModule(ReactApplicationContext reactContext) {
         super(reactContext);
+        reactContext.addActivityEventListener(this);
+
     }
 
     @NonNull
@@ -89,7 +100,16 @@ public class RNMSALModule extends ReactContextBaseJavaModule {
             }
 
             ReadableMap auth = params.getMap("auth");
-
+            ReadableArray recognizedPolicies = params.getArray("recognizedPolicies");
+            RNMSALModule.recognizedPolicies = new ArrayList<>();
+            if (recognizedPolicies != null) {
+                for (Object obj : recognizedPolicies.toArrayList()) {
+                    if(obj instanceof String)
+                    {
+                        RNMSALModule.recognizedPolicies.add((String) obj);
+                    }
+                }
+            }
 //            // Authority
             String authority = getStringOrDefault(auth, "authority", "https://login.microsoftonline.com/common");
 //            msalConfigJsonObj.put("authority", authority);
@@ -222,7 +242,7 @@ public class RNMSALModule extends ReactContextBaseJavaModule {
             AcquireTokenParameters.Builder acquireTokenParameters =
                     new AcquireTokenParameters.Builder()
                             .startAuthorizationFromActivity(this.getCurrentActivity());
-
+            aquireTokenPromise = promise;
             // Required parameters
             List<String> scopes = readableArrayToStringList(params.getArray("scopes"));
             acquireTokenParameters.withScopes(scopes);
@@ -265,20 +285,24 @@ public class RNMSALModule extends ReactContextBaseJavaModule {
         return new AuthenticationCallback() {
             @Override
             public void onCancel() {
+                aquireTokenPromise = null;
                 promise.reject("userCancel", "userCancel");
             }
 
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
                 if (authenticationResult != null) {
+                    aquireTokenPromise = null;
                     promise.resolve(msalResultToDictionary(authenticationResult));
                 } else {
+                    aquireTokenPromise = null;
                     promise.resolve(null);
                 }
             }
 
             @Override
             public void onError(MsalException exception) {
+                aquireTokenPromise = null;
                 promise.reject(exception);
             }
         };
@@ -481,4 +505,22 @@ public class RNMSALModule extends ReactContextBaseJavaModule {
         }
         return writableArray;
     }
+
+  @Override
+  public void onActivityResult(Activity activity, int i, int i1, @Nullable Intent intent) {
+
+  }
+
+  @Override
+  public void onNewIntent(Intent intent) {
+    String action = intent.getAction();
+    Uri data = intent.getData();
+    if (action != null && data != null) {
+      if (data.toString().equals(POLICY_CHANGE_DATA) && aquireTokenPromise != null) {
+        WritableMap map = Arguments.createMap();
+        map.putString(RECOGNIZED_URL, intent.getStringExtra(URL_KEY));
+        aquireTokenPromise.resolve(map);
+      }
+    }
+  }
 }
