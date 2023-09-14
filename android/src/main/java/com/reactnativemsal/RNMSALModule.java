@@ -285,24 +285,20 @@ public class RNMSALModule extends ReactContextBaseJavaModule implements Activity
         return new AuthenticationCallback() {
             @Override
             public void onCancel() {
-                aquireTokenPromise = null;
-                promise.reject("userCancel", "userCancel");
+              promise.reject("userCancel", "userCancel");
             }
 
             @Override
             public void onSuccess(IAuthenticationResult authenticationResult) {
                 if (authenticationResult != null) {
-                    aquireTokenPromise = null;
                     promise.resolve(msalResultToDictionary(authenticationResult));
                 } else {
-                    aquireTokenPromise = null;
                     promise.resolve(null);
                 }
             }
 
             @Override
             public void onError(MsalException exception) {
-                aquireTokenPromise = null;
                 promise.reject(exception);
             }
         };
@@ -513,14 +509,14 @@ public class RNMSALModule extends ReactContextBaseJavaModule implements Activity
 
   @Override
   public void onNewIntent(Intent intent) {
-    String action = intent.getAction();
-    Uri data = intent.getData();
-    if (action != null && data != null) {
-      if (data.toString().equals(POLICY_CHANGE_DATA) && aquireTokenPromise != null) {
-        WritableMap map = Arguments.createMap();
-        map.putString(RECOGNIZED_URL, intent.getStringExtra(URL_KEY));
-        aquireTokenPromise.resolve(map);
+      String action = intent.getAction();
+      Uri data = intent.getData();
+      if (action != null && data != null) {
+          if (data.toString().equals(POLICY_CHANGE_DATA) && aquireTokenPromise != null) {
+              WritableMap map = Arguments.createMap();
+              map.putString(RECOGNIZED_URL, intent.getStringExtra(URL_KEY));
+              aquireTokenPromise.resolve(map);
+          }
       }
-    }
   }
 }
