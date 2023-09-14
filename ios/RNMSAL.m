@@ -10,9 +10,33 @@
 RCT_EXPORT_MODULE()
 
 MSALPublicClientApplication *application;
+RCTPromiseResolveBlock regionResolve;
+NSArray<NSString *> *recognizedPolicies;
 
 - (dispatch_queue_t)methodQueue {
     return dispatch_get_main_queue();
+}
+
+-(void) handleNotification:(NSNotification *) notification {
+    if([[notification name] isEqual:MSALWebAuthDidFinishLoadNotification]) {
+//        NSLog(@"MSALWebAuthDidFinishLoadNotification");
+        // nothing yet
+    }
+
+    if([[notification name] isEqual:MSALWebAuthDidStartLoadNotification]) {
+        NSDictionary * info = [notification userInfo];
+        NSURL * url = info[@"url"];
+
+        for (NSString *policy in recognizedPolicies) {
+            if ([[url absoluteString] containsString:policy]) {
+                NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithCapacity:1];
+                [dict setObject:[url absoluteString] forKey:@"recognizedUrl"];
+
+                regionResolve([dict mutableCopy]);
+                [MSALPublicClientApplication cancelCurrentWebAuthSession];
+            }
+        }
+    }
 }
 
 RCT_REMAP_METHOD(createPublicClientApplication,
@@ -34,6 +58,12 @@ RCT_REMAP_METHOD(createPublicClientApplication,
         NSString *authority = [RCTConvert NSString:auth[@"authority"]];
         NSArray<NSString *> *knownAuthorities = [RCTConvert NSStringArray:auth[@"knownAuthorities"]];
         NSString *redirectUri = [RCTConvert NSString:auth[@"redirectUri"]];
+        NSArray<NSString *> *recognized = [RCTConvert NSStringArray:config[@"recognizedPolicies"]];
+        if(recognized != nil) {
+            recognizedPolicies = recognized;
+        } else {
+            recognizedPolicies = @[];
+        }
         MSALB2CAuthority *msalAuthority = nil;
         if (authority) {
             msalAuthority = [[MSALB2CAuthority alloc] initWithURL:[NSURL URLWithString:authority] error:&msalError];
@@ -118,9 +148,21 @@ RCT_REMAP_METHOD(acquireToken,
         } else {
             interactiveParams.authority = application.configuration.authority;
         }
-
+        
+        NSNotificationCenter *notifyCenter = [NSNotificationCenter defaultCenter];
+        [notifyCenter addObserver:self selector:@selector(handleNotification:) name:MSALWebAuthDidFinishLoadNotification object:nil];
+        [notifyCenter addObserver:self selector:@selector(handleNotification:) name:MSALWebAuthDidStartLoadNotification object:nil];
+        
+        regionResolve = resolve;
+        
         // Send request
         [application acquireTokenWithParameters:interactiveParams completionBlock:^(MSALResult *_Nullable result, NSError *_Nullable error) {
+            NSNotificationCenter *notifyCenter = [NSNotificationCenter defaultCenter];
+            // clean up
+            [notifyCenter removeObserver:self name:MSALWebAuthDidFinishLoadNotification object:nil];
+            [notifyCenter removeObserver:self name:MSALWebAuthDidStartLoadNotification object:nil];
+            regionResolve = nil;
+            
             if (error) {
                 reject([[NSString alloc] initWithFormat:@"%d", (int) error.code], error.description, error);
             } else if (result) {
