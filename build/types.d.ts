@@ -226,6 +226,7 @@ export interface MSALResult {
      * Identifier for the directory where account is locally represented
      */
     tenantId?: string;
+    recognizedUrl?: string;
 }
 export interface MSALAccount {
     /**
@@ -302,3 +303,4 @@ export declare enum Ios_MSALWebviewType {
     SAFARI_VIEW_CONTROLLER = 2,
     WK_WEB_VIEW = 3
 }
+//# sourceMappingURL=types.d.ts.map

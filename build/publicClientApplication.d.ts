@@ -11,3 +11,4 @@ export declare class PublicClientApplication implements IPublicClientApplication
     removeAccount(account: MSALAccount): Promise<boolean>;
     signOut(params: MSALSignoutParams): Promise<boolean>;
 }
+//# sourceMappingURL=publicClientApplication.d.ts.map

@@ -12,3 +12,4 @@ export declare class PublicClientApplication implements IPublicClientApplication
     signOut(params: MSALSignoutParams): Promise<boolean>;
     private validateIsInitialized;
 }
+//# sourceMappingURL=publicClientApplication.native.d.ts.map

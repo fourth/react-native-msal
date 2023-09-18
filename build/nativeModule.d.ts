@@ -10,3 +10,4 @@ declare type RNMSALNativeModule = {
 };
 declare const RNMSAL: RNMSALNativeModule;
 export default RNMSAL;
+//# sourceMappingURL=nativeModule.d.ts.map
