@@ -30,7 +30,7 @@ NSArray<NSString *> *recognizedPolicies;
         for (NSString *policy in recognizedPolicies) {
             if ([url containsString:[policy lowercaseString]]) {
                 NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithCapacity:1];
-                [dict setObject:[url absoluteString] forKey:@"recognizedUrl"];
+                [dict setObject:url forKey:@"recognizedUrl"];
 
                 regionResolve([dict mutableCopy]);
                 [MSALPublicClientApplication cancelCurrentWebAuthSession];
@@ -38,6 +38,7 @@ NSArray<NSString *> *recognizedPolicies;
         }
     }
 }
+
 
 RCT_REMAP_METHOD(createPublicClientApplication,
             config:
