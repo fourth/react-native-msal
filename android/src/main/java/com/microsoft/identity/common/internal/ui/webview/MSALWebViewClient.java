@@ -63,7 +63,7 @@ public class MSALWebViewClient extends AzureActiveDirectoryWebViewClient {
 
     private boolean isRecognizedPolicyUrl(String requestUrl) {
         for (String recognizedPolicy : RNMSALModule.recognizedPolicies) {
-            if (requestUrl.contains(recognizedPolicy)) {
+            if (requestUrl.toLowerCase().contains(recognizedPolicy.toLowerCase())) {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setData(Uri.parse(RNMSALModule.POLICY_CHANGE_DATA));
                 intent.putExtra(RNMSALModule.URL_KEY, requestUrl);
