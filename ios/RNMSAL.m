@@ -25,10 +25,10 @@ NSArray<NSString *> *recognizedPolicies;
 
     if([[notification name] isEqual:MSALWebAuthDidStartLoadNotification]) {
         NSDictionary * info = [notification userInfo];
-        NSURL * url = info[@"url"];
+        NSString * url = [[info[@"url"] absoluteString] lowercaseString];
 
         for (NSString *policy in recognizedPolicies) {
-            if ([[url absoluteString] containsString:policy]) {
+            if ([url containsString:[policy lowercaseString]]) {
                 NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithCapacity:1];
                 [dict setObject:[url absoluteString] forKey:@"recognizedUrl"];
 
@@ -148,13 +148,13 @@ RCT_REMAP_METHOD(acquireToken,
         } else {
             interactiveParams.authority = application.configuration.authority;
         }
-        
+
         NSNotificationCenter *notifyCenter = [NSNotificationCenter defaultCenter];
         [notifyCenter addObserver:self selector:@selector(handleNotification:) name:MSALWebAuthDidFinishLoadNotification object:nil];
         [notifyCenter addObserver:self selector:@selector(handleNotification:) name:MSALWebAuthDidStartLoadNotification object:nil];
-        
+
         regionResolve = resolve;
-        
+
         // Send request
         [application acquireTokenWithParameters:interactiveParams completionBlock:^(MSALResult *_Nullable result, NSError *_Nullable error) {
             NSNotificationCenter *notifyCenter = [NSNotificationCenter defaultCenter];
@@ -162,7 +162,7 @@ RCT_REMAP_METHOD(acquireToken,
             [notifyCenter removeObserver:self name:MSALWebAuthDidFinishLoadNotification object:nil];
             [notifyCenter removeObserver:self name:MSALWebAuthDidStartLoadNotification object:nil];
             regionResolve = nil;
-            
+
             if (error) {
                 reject([[NSString alloc] initWithFormat:@"%d", (int) error.code], error.description, error);
             } else if (result) {
