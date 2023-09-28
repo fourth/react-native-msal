@@ -336,7 +336,7 @@ RCT_REMAP_METHOD(signout,
             @throw msalError;
         }
 
-        UIViewController *viewController = [UIViewController currentViewController];
+        UIViewController *viewController = [[UIViewController currentViewController] parentViewController];
         MSALWebviewParameters *webParameters = [[MSALWebviewParameters alloc] initWithAuthPresentationViewController:viewController];
         if (@available(iOS 13.0, *)) {
             webParameters.prefersEphemeralWebBrowserSession = prefersEphemeralWebBrowserSession;
