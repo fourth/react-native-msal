@@ -66,6 +66,12 @@ export interface MSALConfiguration {
          * because the redirect uris will be different for each platform.
          */
         redirectUri?: string;
+        /**
+         * iOS only! Defaults to "com.microsoft.adalcache".
+         * Set it to [[NSBundle mainBundle] bundleIdentifier] as a string, to disable iCloud session sharing.
+         * More info: https://learn.microsoft.com/en-us/azure/active-directory/develop/howto-v2-keychain-objc?tabs=objc
+         */
+        keychainSharingGroup?: string;
     };
     /**
      * @platform web
