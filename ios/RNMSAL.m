@@ -60,6 +60,7 @@ RCT_REMAP_METHOD(createPublicClientApplication,
         NSArray<NSString *> *knownAuthorities = [RCTConvert NSStringArray:auth[@"knownAuthorities"]];
         NSString *redirectUri = [RCTConvert NSString:auth[@"redirectUri"]];
         NSArray<NSString *> *recognized = [RCTConvert NSStringArray:config[@"recognizedPolicies"]];
+        NSString *keychainSharingGroup = [RCTConvert NSString:auth[@"keychainSharingGroup"]];// default value "com.microsoft.adalcache"
         if(recognized != nil) {
             recognizedPolicies = recognized;
         } else {
@@ -73,6 +74,10 @@ RCT_REMAP_METHOD(createPublicClientApplication,
             }
         }
         MSALPublicClientApplicationConfig *applicationConfig = [[MSALPublicClientApplicationConfig alloc] initWithClientId:clientId redirectUri:nil authority:msalAuthority];
+
+        if(keychainSharingGroup) {
+            applicationConfig.cacheConfig.keychainSharingGroup = keychainSharingGroup;
+        }
 
         if (knownAuthorities) {
             NSMutableArray<MSALB2CAuthority *> *msalKnownAuthorities = [NSMutableArray arrayWithCapacity:1];
