@@ -73,6 +73,9 @@ RCT_REMAP_METHOD(createPublicClientApplication,
                 @throw(msalError);
             }
         }
+
+        [MSALPublicClientApplication cancelCurrentWebAuthSession];
+
         MSALPublicClientApplicationConfig *applicationConfig = [[MSALPublicClientApplicationConfig alloc] initWithClientId:clientId redirectUri:nil authority:msalAuthority];
 
         if(keychainSharingGroup) {
