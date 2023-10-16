@@ -5,6 +5,8 @@ import android.util.AttributeSet;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.reactnativemsal.RNMSALModule;
+
 public class MSALWebView extends WebView {
     public MSALWebView(Context context) {
         super(context);
@@ -37,7 +39,7 @@ public class MSALWebView extends WebView {
             @Override
             public void onPageCommitVisible() {
             }
-        },"msauth://com.fourth.marketplace.qa/ga0RGNYHvNM5d0SLGQfpQWAPGJ8%3D",azureClient));
+        }, RNMSALModule.redirectUrl, azureClient));
     }
 
 }

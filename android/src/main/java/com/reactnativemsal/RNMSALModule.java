@@ -58,6 +58,7 @@ public class RNMSALModule extends ReactContextBaseJavaModule implements Activity
     private static final String AUTHORITY_TYPE_AAD = "AAD";
     private static final String RECOGNIZED_URL = "recognizedUrl";
     public static  ArrayList<String> recognizedPolicies = new ArrayList<>();
+    public static  String redirectUrl = null;
 
     private static final Pattern aadAuthorityPattern = Pattern.compile("https://login\\.microsoftonline\\.com/([^/]+)");
     private static final Pattern b2cAuthorityPattern = Pattern.compile("https://([^/]+)/([^/]+)/.+");
@@ -100,6 +101,7 @@ public class RNMSALModule extends ReactContextBaseJavaModule implements Activity
             }
 
             ReadableMap auth = params.getMap("auth");
+            RNMSALModule.redirectUrl =  auth.getString("redirectUri");
             ReadableArray recognizedPolicies = params.getArray("recognizedPolicies");
             RNMSALModule.recognizedPolicies = new ArrayList<>();
             if (recognizedPolicies != null) {
