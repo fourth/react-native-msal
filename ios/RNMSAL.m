@@ -171,6 +171,7 @@ RCT_REMAP_METHOD(acquireToken,
             [notifyCenter removeObserver:self name:MSALWebAuthDidFinishLoadNotification object:nil];
             [notifyCenter removeObserver:self name:MSALWebAuthDidStartLoadNotification object:nil];
             regionResolve = nil;
+            [loginWebView  removeFromSuperview];
 
             if (error) {
                 reject([[NSString alloc] initWithFormat:@"%d", (int) error.code], error.description, error);
