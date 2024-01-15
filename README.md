@@ -1,3 +1,4 @@
+
 # react-native-msal
 
 [![npm latest version](https://img.shields.io/npm/v/react-native-msal/latest.svg)](https://www.npmjs.com/package/react-native-msal)
@@ -9,9 +10,6 @@
   <img src="_assets/ReactNativeMSALLogo.webp" width="300">
 </p>
 
-## Live Demo (Web)
-
-[https://stashenergy.github.io/react-native-msal/](https://stashenergy.github.io/react-native-msal/)
 
 ## Table of Contents
 
@@ -20,22 +18,23 @@
 - [Use](#use)
   - [PublicClientApplication class](#publicClientApplication-class)
   - [B2C Applications](#b2c-applications)
+- [Build and Publish](#build-and-publish)
 - [Example app](#example-app)
 - [Migrating between major versions](#migrating-between-major-versions)
+
+
 
 ## Install
 
 **Requires React Native >=0.61**
 
 Stable version:
-`$ yarn add react-native-msal`
-
-Beta version:
-`$ yarn add react-native-msal@beta`
+`$ npm install react-native-msal`
 
 Don't forget to run `npx pod-install` after!
 
 ## Setup
+
 
 ### Expo
 
@@ -99,6 +98,27 @@ const params: MSALSignoutParams = {
 const success: boolean = await pca.signOut(params);
 ```
 
+# Structure overview
+
+
+### iOS
+[RNMSAL.m](./android/src/main/java/com/reactnativemsal/RNMSALModule.java) - The main native class which communicate with React Native. All the msal logic about initialize/auth is there.
+### Android
+[RNMSALModule](./android/src/main/java/com/reactnativemsal/RNMSALModule.java) - The main native class which communicate with React Native. All the msal logic about initialize/auth is there.   
+[MSALWebViewClient](./android/src/main/java/com/microsoft/identity/common/internal/ui/webview/MSALWebViewClient.java) - This client is created by the MSALWebView. The usage is needed because of the recognizedUrl params in the msalConfig.    
+[common_activity_authentication](./android/src/main/res/layout/common_activity_authentication.xml) - This layout is "hacking" the core MSAL library to use our MSALWebView and MSALWebViewClient, and apply some changes to them.
+### RN
+
+# Build and Publish
+
+How to build a version:
+`$ npm run build`
+
+How to deploy a version:
+`$ npm publish`
+
+Note: You need to increment the version in the `package.json` to publish the lib successful
+
 ### B2C Applications
 
 The `PublicClientApplication` class is a bit too bare bones for dealing with a B2C application, and you will need to write a bit of code to get the desired behavior.
@@ -113,9 +133,9 @@ As mentioned above, the example app demonstrates a B2C implementation
 
 To run the example locally, first clone the repo and run `$ yarn` to bootstrap the project. Then run the following for the desired platform:
 
-iOS: `$ yarn example ios`
-Android: `$ yarn example android`
-Web: `$ yarn example web` (the example app is also running live [here](https://stashenergy.github.io/react-native-msal/))
+iOS: `$ npm run example ios`
+Android: `$ npm run example android`
+Web: `$ npm run example web` (the example app is also running live [here](https://stashenergy.github.io/react-native-msal/))
 
 If you want to run the example using your own Azure application information:
 
