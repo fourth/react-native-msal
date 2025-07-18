@@ -1,5 +1,12 @@
 {
     "cSpell.words": [
         "RNMSAL"
-    ]
+    ],
+    "workbench.colorCustomizations": {
+        "activityBarBadge.background": "#ffff",
+        "activityBarBadge.foreground": "#ff0000",
+        "activityBar.background": "#3A2B06",
+        "titleBar.activeBackground": "#513D08",
+        "titleBar.activeForeground": "#FEFBF3"
+    }
 }

@@ -137,6 +137,7 @@ RCT_REMAP_METHOD(acquireToken,
         UIViewController *viewController = [UIViewController currentViewController];
         // TODO: check if webview is closed after successful login
         WKWebView * loginWebView = [[WKWebView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+        loginWebView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         [viewController.view addSubview:loginWebView];
 
         MSALWebviewParameters *webParameters = [[MSALWebviewParameters alloc] initWithAuthPresentationViewController:viewController];
